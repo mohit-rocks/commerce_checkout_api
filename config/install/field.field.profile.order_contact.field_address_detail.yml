@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.profile.field_address_detail
+    - profile.type.order_contact
+id: profile.order_contact.field_address_detail
+field_name: field_address_detail
+entity_type: profile
+bundle: order_contact
+label: 详细地址
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

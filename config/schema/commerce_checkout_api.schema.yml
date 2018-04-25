@@ -1,0 +1,30 @@
+commerce_payment.commerce_payment_gateway.plugin.wechat_pay_h5_client:
+  type: commerce_payment_gateway_configuration
+  mapping:
+    appid:
+      type: string
+      label: 'appid'
+    mch_id:
+      type: string
+      label: 'mch_id'
+    key:
+      type: string
+      label: 'key'
+    sub_appid:
+      type: string
+      label: 'sub_appid'
+    sub_mch_id:
+      type: string
+      label: 'sub_mch_id'
+    certpem:
+      type: string
+      label: 'certpem'
+    keypem:
+      type: string
+      label: 'keypem'
+    certpem_uri:
+      type: string
+      label: 'certpem_uri'
+    keypem_uri:
+      type: string
+      label: 'keypem_uri'

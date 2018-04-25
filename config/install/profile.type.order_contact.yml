@@ -1,0 +1,15 @@
+langcode: en
+status: true
+dependencies: {  }
+id: order_contact
+label: 联系信息
+registration: false
+multiple: true
+roles:
+  authenticated: '0'
+  administrator: '0'
+  supplier: '0'
+  distributor: '0'
+weight: 0
+use_revisions: false
+description: 用于保存订单的联系人，手机号码，备注。

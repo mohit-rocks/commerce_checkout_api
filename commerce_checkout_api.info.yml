@@ -1,0 +1,11 @@
+name: 'Commerce Checkout API'
+type: module
+description: 'My Awesome Module'
+core: 8.x
+package: Custom
+dependencies:
+  - commerce_checkout_api
+  - commerce_payment
+  - rest
+  - serialization
+  - simple_oauth

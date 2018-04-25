@@ -1,0 +1,59 @@
+<?php
+
+/**
+ * @file
+ * Contains commerce_checkout_api.module.
+ */
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function commerce_checkout_api_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the commerce_checkout_api module.
+    case 'help.page.commerce_checkout_api':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('My Awesome Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function commerce_checkout_api_theme() {
+  return [
+    'commerce_checkout_api' => [
+      'render element' => 'children',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_entity_base_field_info().
+ */
+function commerce_checkout_api_entity_base_field_info(EntityTypeInterface $entity_type) {
+    $fields = [];
+    if ($entity_type->id() == 'commerce_order') {
+
+        $fields['contact'] = BaseFieldDefinition::create('entity_reference')
+            ->setLabel(t('联系信息'))
+            ->setSetting('target_type', 'profile')
+            ->setSetting('handler', 'default')
+            ->setDisplayOptions('view', [
+                'label' => 'above',
+                'type' => 'entity_reference_entity_view'
+            ])
+            ->setDisplayOptions('form', [
+                'type' => 'inline_entity_form_simple'
+            ]);
+    }
+    return $fields;
+}

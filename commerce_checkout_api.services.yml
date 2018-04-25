@@ -1,0 +1,6 @@
+services:
+  commerce_checkout_api.normalizer.order_items:
+    class: Drupal\commerce_checkout_api\Normalizer\OrderItemsNormalizer
+    arguments: ['@entity.repository']
+    tags:
+      - { name: normalizer, priority: 9 }

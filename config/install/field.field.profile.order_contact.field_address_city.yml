@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.profile.field_address_city
+    - profile.type.order_contact
+id: profile.order_contact.field_address_city
+field_name: field_address_city
+entity_type: profile
+bundle: order_contact
+label: 城市
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_checkout_api
+    - serialization
+    - simple_oauth
+id: complete_order_resource
+plugin_id: complete_order_resource
+granularity: resource
+configuration:
+  methods:
+    - GET
+    - PATCH
+  formats:
+    - json
+  authentication:
+    - oauth2
