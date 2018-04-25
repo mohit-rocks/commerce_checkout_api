@@ -9,17 +9,13 @@ weight: null
 plugin: wechat_pay_h5_client
 configuration:
   display_label: 微信H5客户端支付
-  mode: test
+  mode: live
   payment_method_types:
     - credit_card
-  appid: wx00a4f8b0a2870191
-  mch_id: '1234349302'
-  key: asfghhjhjkdghseryryutyjfvzxvdrhg
-  sub_appid: ''
-  sub_mch_id: ''
-  certpem: ''
-  keypem: ''
-  certpem_uri: wx00a4f8b0a2870191d41d8cd98f00b204e9800998ecf8427e
-  keypem_uri: wx00a4f8b0a2870191d41d8cd98f00b204e9800998ecf8427e
+  appid: ''
+  mch_id: ''
+  key: ''
+  cert_pem_path: /app/wechatpay_pems/apiclient_key.pem
+  key_pem_path: /app/wechatpay_pems/apiclient_key.pem
 conditions: {  }
 conditionOperator: AND

@@ -109,8 +109,8 @@ class PaymentResource extends ResourceBase
         $commerce_order->save();
 
         // TODO::暂时直接把订单设置为已支付状态
-        $this->placeOrder($commerce_order);
-        return new ModifiedResourceResponse([], 200);
+        /*$this->placeOrder($commerce_order);
+        return new ModifiedResourceResponse([], 200);*/
 
         // 调用支付网关，创建支付，并返回支付调起数据
         // 实例化网关插件
@@ -120,6 +120,8 @@ class PaymentResource extends ResourceBase
         $payment_gateway_plugin = $payment_gateway->getPlugin();
 
         $config_data = $payment_gateway_plugin->generateClientPayConfigData($commerce_order);
+
+        return new ModifiedResourceResponse($config_data, 200);
     }
 
     private function placeOrder(OrderInterface $commerce_order) {

@@ -30,8 +30,6 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
 {
     use StringTranslationTrait;
 
-    const KEY_URI_PREFIX = 'private://commerce_wechat_pay/';
-
     /** @var  \EasyWeChat\Payment\payment $gateway_lib */
     protected $gateway_lib;
 
@@ -66,42 +64,19 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
             '#required' => TRUE,
         ];
 
-        $form['sub_appid'] = [
+
+        $form['cert_pem_path'] = [
             '#type' => 'textfield',
-            '#title' => $this->t('子商户公众账号ID'),
-            '#description' => $this->t('绑定支付的APPID（开户邮件中可查看）'),
-            '#default_value' => $this->configuration['sub_appid']
+            '#title' => $this->t('Cert证书路径'),
+            '#description' => $this->t('apiclient_cert.pem'),
+            '#default_value' => $this->configuration['cert_pem_path']
         ];
 
-        $form['sub_mch_id'] = [
+        $form['key_pem_path'] = [
             '#type' => 'textfield',
-            '#title' => $this->t('子商户号'),
-            '#description' => $this->t('开户邮件中可查看'),
-            '#default_value' => $this->configuration['sub_mch_id']
-        ];
-
-        $form['certpem'] = [
-            '#type' => 'textarea',
-            '#title' => $this->t('证书文件内容'),
-            '#description' => $this->t('Please open your apiclient_cert.pem file, and copy/paste the content to this text area.'),
-            '#default_value' => $this->configuration['certpem']
-        ];
-
-        $form['keypem'] = [
-            '#type' => 'textarea',
-            '#title' => $this->t('证书文件密钥'),
-            '#description' => $this->t('Please open your apiclient_key.pem file, and copy/paste the content to this text area.'),
-            '#default_value' => $this->configuration['keypem']
-        ];
-
-        $form['certpem_uri'] = [
-            '#type' => 'hidden',
-            '#default_value' => $this->configuration['certpem_uri']
-        ];
-
-        $form['keypem_uri'] = [
-            '#type' => 'hidden',
-            '#default_value' => $this->configuration['keypem_uri']
+            '#title' => $this->t('Key证书路径'),
+            '#description' => $this->t('apiclient_key.pem'),
+            '#default_value' => $this->configuration['cert_pem_path']
         ];
 
         return $form;
@@ -113,54 +88,6 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
     public function validateConfigurationForm(array &$form, FormStateInterface $form_state)
     {
 
-        $values = $form_state->getValue($form['#parents']);
-        if (!empty($values['certpem'])) {
-            // Check the file directory for storing cert/key files
-            $path = self::KEY_URI_PREFIX;
-            $dir = file_prepare_directory($path, FILE_CREATE_DIRECTORY);
-            if (!$dir) {
-                $form_state->setError($form['certpem'], $this->t('Commerce WeChat Pay cannot find your private file system. Please make sure your site has private file system configured!'));
-                return;
-            }
-
-            $new_uri = $values['appid'] . md5($values['certpem']);
-
-            if (empty($this->configuration['certpem_uri'])) {
-            } else {
-                file_unmanaged_delete(self::KEY_URI_PREFIX . $this->configuration['certpem_uri']);
-            }
-            // We regenerate pem file in case the files were missing during server migration
-            $updated = file_unmanaged_save_data($values['certpem'], self::KEY_URI_PREFIX . $new_uri);
-            if ($updated) {
-                $values['certpem_uri'] = $new_uri;
-            } else {
-                $form_state->setError($form['certpem'], $this->t('Commerce WeChat Pay cannot save your "certpem" into a file. Please make sure your site has private file system configured!'));
-            }
-        }
-
-        if (!empty($values['keypem'])) {
-            // Check the file directory for storing cert/key files
-            $path = self::KEY_URI_PREFIX;
-            $dir = file_prepare_directory($path, FILE_CREATE_DIRECTORY);
-            if (!$dir) {
-                $form_state->setError($form['keypem'], $this->t('Commerce WeChat Pay cannot find your private file system. Please make sure your site has private file system configured!'));
-                return;
-            }
-
-            $new_uri = $values['appid'] . md5($values['keypem']);
-
-            if (empty($this->configuration['keypem_uri'])) {
-            } else {
-                file_unmanaged_delete(self::KEY_URI_PREFIX . $this->configuration['keypem_uri']);
-            }
-            // We regenerate pem file in case the files were missing during server migration
-            $updated = file_unmanaged_save_data($values['keypem'], self::KEY_URI_PREFIX . $new_uri);
-            if ($updated) {
-                $values['keypem_uri'] = $new_uri;
-            } else {
-                $form_state->setError($form['keypem'], $this->t('Commerce WeChat Pay cannot save your "keypem" into a file. Please make sure your site has private file system configured!'));
-            }
-        }
     }
 
     /**
@@ -174,12 +101,8 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
             $this->configuration['appid'] = $values['appid'];
             $this->configuration['mch_id'] = $values['mch_id'];
             $this->configuration['key'] = $values['key'];
-            $this->configuration['sub_appid'] = $values['sub_appid'];
-            $this->configuration['sub_mch_id'] = $values['sub_mch_id'];
-            $this->configuration['certpem'] = $values['certpem'];
-            $this->configuration['keypem'] = $values['keypem'];
-            $this->configuration['certpem_uri'] = $values['appid'] . md5($values['certpem']);
-            $this->configuration['keypem_uri'] = $values['appid'] . md5($values['keypem']);
+            $this->configuration['cert_pem_path'] = $values['key_pem_path'];
+            $this->configuration['key_pem_path'] = $values['key_pem_path'];
         }
     }
 
@@ -341,17 +264,11 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
         if (!$key) {
             $key = $this->getConfiguration()['key'];
         }
-        if (!$sub_appid) {
-            $sub_appid = $this->getConfiguration()['sub_appid'];
-        }
-        if (!$sub_mch_id) {
-            $sub_mch_id = $this->getConfiguration()['sub_mch_id'];
-        }
         if (!$cert_path) {
-            $cert_path = drupal_realpath(self::KEY_URI_PREFIX . $this->getConfiguration()['certpem_uri']);
+            $cert_path = $this->getConfiguration()['cert_pem_path'];
         }
         if (!$key_path) {
-            $key_path = drupal_realpath(self::KEY_URI_PREFIX . $this->getConfiguration()['keypem_uri']);
+            $key_path = $this->getConfiguration()['key_pem_path'];
         }
         if (!$mode) {
             $mode = $this->getMode();
@@ -360,17 +277,12 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
         $options = [
             // 前面的appid什么的也得保留哦
             'app_id' => $appid,
-            // ...
             // payment
             'payment' => [
                 'merchant_id' => $mch_id,
                 'key' => $key,
                 'cert_path' => $cert_path,
-                'key_path' => $key_path,
-                // 'device_info'     => '013467007045764',
-                'sub_app_id' => $sub_appid,
-                'sub_merchant_id' => $sub_mch_id,
-                // ...
+                'key_path' => $key_path
             ],
         ];
 
@@ -397,7 +309,7 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
         $order_item_names = '';
         foreach ($commerce_order->getItems() as $order_item) {
             /** @var OrderItem $order_item */
-            $order_item_names .= $order_item->getTitle();
+            $order_item_names .= $order_item->getTitle() . ', ';
         }
 
         // 查看用户 open_id
@@ -407,8 +319,11 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
             ->condition('plugin_id', 'social_auth');
         $social_auth_id = $query->execute();
 
+        if (empty($social_auth_id)) throw new \Exception('找不到当前用户 '.\Drupal::currentUser()->getAccountName().' 的 openid，');
+
         /** @var SocialAuth $social_auth_user */
         $social_auth_user = SocialAuth::load(array_pop($social_auth_id));
+
 
         global $base_url;
         $notify_url = $base_url . '/' . $this->getNotifyUrl()->getInternalPath();
@@ -417,7 +332,7 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
             'trade_type'       => 'JSAPI', // JSAPI，NATIVE，APP...
             'body'             => \Drupal::config('system.site')->get('name') . $this->t(' Order: ') . $commerce_order->getOrderNumber(),
             'detail'           => $order_item_names,
-            'out_trade_no'     => $commerce_order->id(),
+            'out_trade_no'     => $commerce_order->id().'at'.time(),
             'total_fee'        => $commerce_order->getTotalPrice()->getNumber() * 100, // 单位：分
             'notify_url'       => $notify_url, // 支付结果通知网址，如果不设置则会使用配置里的默认地址
             'openid'           => $social_auth_user->get('provider_user_id')->value, // trade_type=JSAPI，此参数必传，用户在商户appid下的唯一标识，
@@ -426,7 +341,7 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
         $order = new Order($attributes);
 
         $result = $this->gateway_lib->prepare($order);
-        if ($result->return_code == 'SUCCESS' && $result->result_code == 'SUCCESS'){
+        if ($result->return_code == 'SUCCESS'){
             $prepayId = $result->prepay_id;
 
             // 创建commerce_payment
@@ -438,7 +353,7 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
                 $result->code_url,
                 $commerce_order->getTotalPrice());
 
-            return $this->gateway_lib->configForJSSDKPayment($prepayId);
+            return $this->gateway_lib->configForPayment($prepayId, false);
         } else {
             throw new \Exception('下单错误');
         }
