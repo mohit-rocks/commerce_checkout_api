@@ -149,6 +149,7 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
 
     /**
      * {@inheritdoc}
+     * @throws \EasyWeChat\Core\Exceptions\FaultException
      */
     public function onNotify(Request $request)
     {
@@ -157,40 +158,44 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
             $this->loadGatewayConfig();
         }
 
-        /** @var \EasyWeChat\Payment\API $gateway ; */
+        /** @var \EasyWeChat\Payment\Payment $gateway ; */
         $gateway = $this->gateway_lib;
 
-        $response = $gateway->handleNotify(function ($notify, $successful) {
+        $response = $gateway->handleNotify(function (\EasyWeChat\Support\Collection $notify, $successful) {
             $result = $notify->toArray();
 
+            // 记录系统日志
             if ($this->getMode()) {
-                \Drupal::logger('commerce_wechat_pay')->notice(print_r($result, TRUE));
+                \Drupal::logger('commerce_wechat_pay')->notice('接收到来自微信支付的通知：'.print_r($result, TRUE));
             }
-
-            // load the payment
-            /** @var \Drupal\Core\Entity\Query\QueryInterface $query */
-            $query = \Drupal::entityQuery('commerce_payment')
-                ->condition('order_id', $result['out_trade_no'])
-                ->addTag('commerce_wechat_pay:check_payment');
-            $payment_id = $query->execute();
-            /** @var \Drupal\commerce_payment\Entity\Payment $payment_entity */
-            $payment_entity = Payment::load(array_values($payment_id)[0]);
 
             if ($successful) {
 
-                if ($payment_id) {
+                // load the payment
+                $order_id = null;
+                $payment_id = null;
+                $id_info = explode('-', $result['out_trade_no']);
+                if ($id_info && count($id_info) > 2) {
+                    $order_id = $id_info[0];
+                    $payment_id = $id_info[1];
+                } else {
+                    \Drupal::logger('commerce_wechat_pay')->error('out_trade_no不是预期格式['.$result['out_trade_no'].']: '.print_r($result, TRUE));
+                    return false;
+                }
 
-                    if ($payment_entity) {
-                        $payment_entity->setState('completed');
-                        $payment_entity->setRemoteId($result['transaction_id']);
-                        $payment_entity->save();
-                    } else {
-                        // Payment doesn't exist
-                        \Drupal::logger('commerce_wechat_pay')->error(print_r($result, TRUE));
-                    }
+                /** @var \Drupal\commerce_payment\Entity\Payment $payment_entity */
+                $payment_entity = Payment::load($payment_id);
+                if ($payment_entity && $payment_entity->getOrderId() === (int)$order_id) {
+                    $payment_entity->setState('completed');
+                    $payment_entity->setRemoteId($result['transaction_id']);
+                    $payment_entity->save();
+                } else {
+                    // Payment doesn't exist
+                    \Drupal::logger('commerce_wechat_pay')->error('找不到订单['.$order_id.']的支付单['.$payment_id.']: '.print_r($result, TRUE));
+                    return false;
                 }
             } else { // When payment failed
-                \Drupal::logger('commerce_wechat_pay')->error(print_r($result, TRUE));
+                \Drupal::logger('commerce_wechat_pay')->error('客户支付没有成功：'.print_r($result, TRUE));
             }
 
             return TRUE; // Respond WeChat request that we have finished processing this notification
@@ -200,40 +205,22 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
     }
 
     /**
-     * Create a Commerce Payment from a WeChat request successful result
-     * @param  array $result
-     * @param  string $state
-     * @param null $order_id
-     * @param  string $remote_state
-     * @param \Drupal\commerce_price\Price|null $price
-     * @return \Drupal\Core\Entity\EntityInterface
+     * @param \Drupal\commerce_order\Entity\Order $commerce_order
+     * @return Payment
+     * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+     * @throws \Drupal\Core\Entity\EntityStorageException
      */
-    public function createPayment(array $result, $state, $order_id = NULL, $remote_state = NULL, Price $price = NULL)
+    public function createPayment(\Drupal\commerce_order\Entity\Order $commerce_order)
     {
         /** @var \Drupal\commerce_payment\Plugin\Commerce\PaymentGateway\OffsitePaymentGatewayInterface $payment_gateway_plugin */
         $payment_storage = $this->entityTypeManager->getStorage('commerce_payment');
 
-        $request_time = \Drupal::time()->getRequestTime();
-
-        if (array_key_exists('transaction_id', $result)) {
-            $remote_id = $result['transaction_id'];
-        } elseif (array_key_exists('prepay_id', $result)) {
-            $remote_id = $result['prepay_id'];
-        } else {
-            $remote_id = NULL; // There is no $remote_id when USERPAYING
-        }
-
         $payment = $payment_storage->create([
-            'state' => $state,
-            'amount' => $price ? $price : new Price(strval($result['total_fee'] / 100), $result['fee_type']),
+            'state' => 'new',
+            'amount' => $commerce_order->getTotalPrice(),
             'payment_gateway' => $this->entityId,
-            'order_id' => $order_id ? $order_id : $result['out_trade_no'],
-            'test' => $this->getMode() == 'test',
-            'remote_id' => $remote_id,
-            'remote_state' => $remote_state,
-            'authorized' => array_key_exists('time_start', $result) ? strtotime($result['time_start']) : $request_time,
-            'authorization_expires' => array_key_exists('time_expire', $result) ? strtotime($result['time_expire']) : strtotime('+2 hours', $request_time),
-            'captured' => $state === 'completed' ? strtotime($result['time_end']) : NULL
+            'order_id' => $commerce_order,
+            'test' => $this->getMode() === 'test'
         ]);
 
         $payment->save();
@@ -328,11 +315,13 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
         global $base_url;
         $notify_url = $base_url . '/' . $this->getNotifyUrl()->getInternalPath();
 
+        $payment = $this->createPayment($commerce_order);
+
         $attributes = [
             'trade_type'       => 'JSAPI', // JSAPI，NATIVE，APP...
             'body'             => \Drupal::config('system.site')->get('name') . $this->t(' Order: ') . $commerce_order->getOrderNumber(),
             'detail'           => $order_item_names,
-            'out_trade_no'     => $commerce_order->id().'at'.time(),
+            'out_trade_no'     => $commerce_order->id().'-'.$payment->id().'-'.time(),
             'total_fee'        => $commerce_order->getTotalPrice()->getNumber() * 100, // 单位：分
             'notify_url'       => $notify_url, // 支付结果通知网址，如果不设置则会使用配置里的默认地址
             'openid'           => $social_auth_user->get('provider_user_id')->value, // trade_type=JSAPI，此参数必传，用户在商户appid下的唯一标识，
@@ -344,18 +333,29 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
         if ($result->return_code == 'SUCCESS'){
             $prepayId = $result->prepay_id;
 
-            // 创建commerce_payment
-            /** @var \Drupal\commerce_payment\Entity\Payment $payment_entity */
-            $payment_entity = $this->createPayment(
-                $result->toArray(),
-                'authorization',
-                $commerce_order->id(),
-                $result->code_url,
-                $commerce_order->getTotalPrice());
+            // 更新Payment
+            $payment->setState('authorization');
+            $payment->setAuthorizedTime(time());
+            $payment->setRemoteId($this->getRemoteId($result));
+            $payment->setRemoteState($result->code_url);
+            $payment->save();
 
             return $this->gateway_lib->configForPayment($prepayId, false);
         } else {
             throw new \Exception('下单错误');
         }
+    }
+
+    private function getRemoteId($result)
+    {
+        $remote_id = NULL; // There is no $remote_id when USERPAYING
+
+        if (array_key_exists('transaction_id', $result)) {
+            $remote_id = $result['transaction_id'];
+        } elseif (array_key_exists('prepay_id', $result)) {
+            $remote_id = $result['prepay_id'];
+        }
+
+        return $remote_id;
     }
 }
