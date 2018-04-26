@@ -185,7 +185,7 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
 
                 /** @var \Drupal\commerce_payment\Entity\Payment $payment_entity */
                 $payment_entity = Payment::load($payment_id);
-                if ($payment_entity && $payment_entity->getOrderId() === (int)$order_id) {
+                if ($payment_entity && (int)$payment_entity->getOrderId() === (int)$order_id) {
                     $payment_entity->setState('completed');
                     $payment_entity->setRemoteId($result['transaction_id']);
                     $payment_entity->save();
