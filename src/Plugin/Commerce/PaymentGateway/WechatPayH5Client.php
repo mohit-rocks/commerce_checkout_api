@@ -322,7 +322,7 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
             'body'             => \Drupal::config('system.site')->get('name') . $this->t(' Order: ') . $commerce_order->getOrderNumber(),
             'detail'           => $order_item_names,
             'out_trade_no'     => $commerce_order->id().'-'.$payment->id().'-'.time(),
-            'total_fee'        => $commerce_order->getTotalPrice()->getNumber() * 100, // 单位：分
+            'total_fee'        => 1,//$commerce_order->getTotalPrice()->getNumber() * 100, // 单位：分
             'notify_url'       => $notify_url, // 支付结果通知网址，如果不设置则会使用配置里的默认地址
             'openid'           => $social_auth_user->get('provider_user_id')->value, // trade_type=JSAPI，此参数必传，用户在商户appid下的唯一标识，
         ];
