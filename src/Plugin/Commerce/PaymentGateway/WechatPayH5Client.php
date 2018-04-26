@@ -185,10 +185,14 @@ class WechatPayH5Client extends OffsitePaymentGatewayBase implements SupportsRef
 
                 /** @var \Drupal\commerce_payment\Entity\Payment $payment_entity */
                 $payment_entity = Payment::load($payment_id);
+                $order = \Drupal\commerce_order\Entity\Order::load($order_id);
                 if ($payment_entity && (int)$payment_entity->getOrderId() === (int)$order_id) {
                     $payment_entity->setState('completed');
                     $payment_entity->setRemoteId($result['transaction_id']);
                     $payment_entity->save();
+
+                    $transition = $order->getState()->getWorkflow()->getTransition('place');
+                    $order->getState()->applyTransition($transition);
                 } else {
                     // Payment doesn't exist
                     \Drupal::logger('commerce_wechat_pay')->error('找不到订单['.$order_id.']的支付单['.$payment_id.']: '.print_r($result, TRUE));
