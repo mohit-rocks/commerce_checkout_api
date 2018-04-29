@@ -112,12 +112,7 @@ class CompleteOrderResource extends ResourceBase
     public function get(Order $entity)
     {
         $response = new ResourceResponse($entity);
-        $build = array(
-            '#cache' => array(
-                'max-age' => 0,
-            ),
-        );
-        $response->addCacheableDependency($build);
+        $response->addCacheableDependency($entity);
         return $response;
     }
 
