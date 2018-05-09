@@ -1,0 +1,78 @@
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.field.profile.order_contact.field_address_city
+    - field.field.profile.order_contact.field_address_city_code
+    - field.field.profile.order_contact.field_address_detail
+    - field.field.profile.order_contact.field_address_district
+    - field.field.profile.order_contact.field_address_district_code
+    - field.field.profile.order_contact.field_address_province
+    - field.field.profile.order_contact.field_address_province_code
+    - field.field.profile.order_contact.field_name
+    - field.field.profile.order_contact.field_phone
+    - field.field.profile.order_contact.field_remark
+    - profile.type.order_contact
+id: profile.order_contact.default
+targetEntityType: profile
+bundle: order_contact
+mode: default
+content:
+  field_address_city:
+    type: string
+    weight: 1
+    region: content
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  field_address_detail:
+    type: basic_string
+    weight: 3
+    region: content
+    label: inline
+    settings: {  }
+    third_party_settings: {  }
+  field_address_district:
+    type: string
+    weight: 2
+    region: content
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  field_address_province:
+    type: string
+    weight: 0
+    region: content
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  field_name:
+    type: string
+    weight: 4
+    region: content
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  field_phone:
+    type: string
+    weight: 5
+    region: content
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  field_remark:
+    type: basic_string
+    weight: 6
+    region: content
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  field_address_city_code: true
+  field_address_district_code: true
+  field_address_province_code: true
