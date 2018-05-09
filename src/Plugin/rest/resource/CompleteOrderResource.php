@@ -146,10 +146,10 @@ class CompleteOrderResource extends ResourceBase
 
         if (!empty($unserialized['contact']['address'])) {
             $profile->set('field_address_province', $unserialized['contact']['address']['field_address_province']);
-            $profile->set('field_address_province_code', $unserialized['contact']['address']['field_address_province_code']);            $profile->set('field_address_province', $unserialized['address']['field_address_province']);
+            $profile->set('field_address_province_code', $unserialized['contact']['address']['field_address_province_code']);
 
             $profile->set('field_address_city', $unserialized['contact']['address']['field_address_city']);
-            $profile->set('field_address_city_code', $unserialized['contact']['address']['field_address_city_code']);            $profile->set('field_address_province', $unserialized['address']['field_address_province']);
+            $profile->set('field_address_city_code', $unserialized['contact']['address']['field_address_city_code']);
 
             $profile->set('field_address_district', $unserialized['contact']['address']['field_address_district']);
             $profile->set('field_address_district_code', $unserialized['contact']['address']['field_address_district_code']);
