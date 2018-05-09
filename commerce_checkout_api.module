@@ -53,7 +53,9 @@ function commerce_checkout_api_entity_base_field_info(EntityTypeInterface $entit
             ])
             ->setDisplayOptions('form', [
                 'type' => 'inline_entity_form_simple'
-            ]);
+            ])
+            ->setDisplayConfigurable('view', true)
+            ->setDisplayConfigurable('form', true);
     }
     return $fields;
 }
