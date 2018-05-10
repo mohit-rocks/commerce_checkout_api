@@ -59,3 +59,14 @@ function commerce_checkout_api_entity_base_field_info(EntityTypeInterface $entit
     }
     return $fields;
 }
+
+
+/**
+ * Implements hook_entity_type_build().
+ */
+function commerce_checkout_api_entity_type_build(array &$entity_types) {
+    /** @var \Drupal\Core\Entity\EntityTypeInterface[] $entity_types */
+    if (isset($entity_types['profile'])) {
+        $entity_types['profile']->setHandlerClass('inline_form', '\Drupal\commerce_checkout_api\Form\ProfileInlineForm');
+    }
+}
