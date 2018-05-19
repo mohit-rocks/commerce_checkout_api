@@ -2,8 +2,11 @@
 
 namespace Drupal\commerce_checkout_api\Normalizer;
 
+use Drupal\aiqilv_order_verification\Entity\OrderVerificationCode;
+use Drupal\aiqilv_order_verification\Entity\OrderVerificationCodeInterface;
 use Drupal\commerce\PurchasableEntityInterface;
 use Drupal\commerce_order\Entity\OrderItemInterface;
+use Drupal\commerce_product\Entity\ProductVariationInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\profile\Entity\ProfileInterface;
 use Drupal\serialization\Normalizer\EntityReferenceFieldItemNormalizer;
@@ -20,7 +23,7 @@ class OrderItemsNormalizer extends EntityReferenceFieldItemNormalizer {
         $supported = parent::supportsNormalization($data, $format);
         if ($data instanceof EntityReferenceItem) {
             $entity = $data->get('entity')->getValue();
-            if ($entity instanceof ProfileInterface || $entity instanceof OrderItemInterface || $entity instanceof PurchasableEntityInterface) return true;
+            if ($entity instanceof ProfileInterface || $entity instanceof OrderItemInterface || $entity instanceof PurchasableEntityInterface || $entity instanceof OrderVerificationCodeInterface) return true;
         }
         return FALSE;
     }
@@ -32,7 +35,27 @@ class OrderItemsNormalizer extends EntityReferenceFieldItemNormalizer {
         /** @var \Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem $field_item */
         /** @var \Drupal\Core\Entity\EntityInterface $entity */
         if ($entity = $field_item->get('entity')->getValue()) {
-            return $this->serializer->normalize($entity, $format, $context);
+            if ($entity instanceof PurchasableEntityInterface) {
+                $data = $this->serializer->normalize($entity, $format, $context);
+                $variation = null;
+                if ($entity instanceof ProductVariationInterface) {
+                    $variation = $entity;
+                } else {
+                    try {
+                        $variation = $entity->getVariation();
+                    } catch (\Exception $e) {
+                        $variation = null;
+                    }
+                }
+
+                if ($variation) {
+                    $data['_product']['id'] = $variation->getProduct()->id();
+                    $data['_product']['name'] = $variation->getProduct()->getTitle();
+                }
+                return $data;
+            } else {
+                return $this->serializer->normalize($entity, $format, $context);
+            }
         }
         return $this->serializer->normalize([], $format, $context);
     }
