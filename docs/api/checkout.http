@@ -11,3 +11,8 @@ Content-Type: application/json
 {}
 
 ###
+
+GET http://{{host}}/api/rest/views/orders/all?_format=json&field_phone_value=15999643210&page=0
+Accept: application/json
+
+###
