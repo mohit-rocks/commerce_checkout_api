@@ -60,6 +60,42 @@ function commerce_checkout_api_entity_base_field_info(EntityTypeInterface $entit
     return $fields;
 }
 
+/**
+ * Implements hook_entity_bundle_field_info().
+ */
+function commerce_checkout_api_entity_bundle_field_info(EntityTypeInterface $entity_type, $bundle, array $base_field_definitions)
+{
+    if ($entity_type->id() == 'profile' && $bundle == 'customer') {
+        $fields = [];
+        $fields['phone'] = \Drupal\entity\BundleFieldDefinition::create('string')
+            ->setLabel(t('联系电话'))
+            ->setDefaultValue('')
+            ->setDisplayOptions('view', [
+                'label' => 'inline',
+                'type' => 'string'
+            ])
+            ->setDisplayOptions('form', [
+                'type' => 'string_textfield'
+            ])
+            ->setDisplayConfigurable('view', true)
+            ->setDisplayConfigurable('form', true);
+
+        return $fields;
+    }
+}
+
+/**
+ * Implements hook_entity_field_storage_info().
+ */
+function commerce_checkout_api_entity_field_storage_info(EntityTypeInterface $entity_type) {
+    if ($entity_type->id() == 'profile') {
+        $definitions['phone'] = \Drupal\entity\BundleFieldDefinition::create('string')
+            ->setName('phone')
+            ->setLabel(t('联系电话'))
+            ->setTargetEntityTypeId($entity_type->id());
+        return $definitions;
+    }
+}
 
 /**
  * Implements hook_entity_type_build().

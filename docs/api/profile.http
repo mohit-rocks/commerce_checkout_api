@@ -1,0 +1,73 @@
+# For a quick start check out our HTTP Requests collection (Tools|HTTP Client|Open HTTP Requests Collection).
+#
+# Following HTTP Request Live Templates are available:
+# * 'gtrp' and 'gtr' create a GET request with or without query parameters;
+# * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
+# * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
+### 创建资料
+POST http://{{host}}/entity/profile?_format=json
+Content-Type: application/json
+Authorization: Basic {{username}} {{password}}
+
+{
+  "type": "customer",
+  "phone": "15999643270",
+  "uid": 1,
+  "address": [{
+    "langcode": "zh-hans",
+    "country_code": "CN",
+    "administrative_area": "Guangdong Sheng",
+    "locality": "Guangzhou Shi",
+    "dependent_locality": "Tianhe Qu",
+    "postal_code": "510000",
+    "sorting_code": "",
+    "address_line1": "sddfgd",
+    "address_line2": "dgdfgdfg",
+    "organization": "sdfsdf",
+    "given_name": "小白",
+    "additional_name": "",
+    "family_name": "杨"
+  }]
+}
+
+### 读取资料
+GET http://{{host}}/profile/1?_format=json
+Content-Type: application/json
+Authorization: Basic {{username}} {{password}}
+
+{}
+
+### 修改资料
+PATCH http://{{host}}/profile/1?_format=json
+Content-Type: application/json
+Authorization: Basic {{username}} {{password}}
+
+{
+  "type": "customer",
+  "phone": "15999643270",
+  "uid": 1,
+  "address": [{
+    "langcode": "zh-hans",
+    "country_code": "CN",
+    "administrative_area": "Guangdong Sheng",
+    "locality": "Guangzhou Shi",
+    "dependent_locality": "Tianhe Qu",
+    "postal_code": "510000",
+    "sorting_code": "",
+    "address_line1": "sddfgd",
+    "address_line2": "dgdfgdfg",
+    "organization": "sdfsdf",
+    "given_name": "小白",
+    "additional_name": "",
+    "family_name": "杨"
+  }]
+}
+
+### 删除资料
+DELETE http://{{host}}/profile/5?_format=json
+Content-Type: application/json
+Authorization: Basic {{username}} {{password}}
+
+{}
+
+###

@@ -9,3 +9,5 @@ dependencies:
   - rest
   - serialization
   - simple_oauth
+  - basic_auth
+  - profile
