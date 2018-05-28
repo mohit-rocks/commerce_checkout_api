@@ -51,6 +51,7 @@ class OrderItemsNormalizer extends EntityReferenceFieldItemNormalizer {
                 if ($variation) {
                     $data['_product']['id'] = $variation->getProduct()->id();
                     $data['_product']['name'] = $variation->getProduct()->getTitle();
+                    $data['_product']['image'] = $variation->getProduct()->hasField('image') ? file_create_url($variation->getProduct()->get('image')->entity->getFileUri()) : '';
                 }
                 return $data;
             } else {
