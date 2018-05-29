@@ -145,23 +145,25 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
-          operator: 'not in'
-          value:
-            draft: draft
+          operator: in
+          value: {  }
           group: 1
-          exposed: false
+          exposed: true
           expose:
-            operator_id: ''
-            label: ''
+            operator_id: state_op
+            label: 状态
             description: ''
             use_operator: false
-            operator: ''
-            identifier: ''
+            operator: state_op
+            identifier: state
             required: false
             remember: false
             multiple: false
             remember_roles:
               authenticated: authenticated
+              anonymous: '0'
+              distributor: '0'
+              administrator: '0'
             reduce: false
           is_grouped: false
           group_info:
@@ -178,7 +180,22 @@ display:
           entity_type: commerce_order
           entity_field: state
           plugin_id: state_machine_state
-      sorts: {  }
+      sorts:
+        placed:
+          id: placed
+          table: commerce_order
+          field: placed
+          relationship: none
+          group_type: group
+          admin_label: ''
+          order: DESC
+          exposed: false
+          expose:
+            label: ''
+          granularity: second
+          entity_type: commerce_order
+          entity_field: placed
+          plugin_id: date
       header: {  }
       footer: {  }
       empty: {  }
@@ -238,7 +255,7 @@ display:
     position: 1
     display_options:
       display_extenders: {  }
-      path: api/rest/views/orders
+      path: api/rest/views/orders/%user_id
       pager:
         type: full
         options:
