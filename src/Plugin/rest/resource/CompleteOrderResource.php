@@ -2,6 +2,7 @@
 
 namespace Drupal\commerce_checkout_api\Plugin\rest\resource;
 
+use Drupal\commerce_express\Entity\ExpressMethod;
 use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\Core\Entity\EntityInterface;
@@ -187,6 +188,12 @@ class CompleteOrderResource extends ResourceBase
         if ($unserialized['billing_profile']) {
             $billing_profile = Profile::load($unserialized['billing_profile']);
             $commerce_order->setBillingProfile($billing_profile);
+        }
+
+        // 保存快递选项
+        if ($unserialized['express_method']) {
+            $express_method = ExpressMethod::load($unserialized['express_method']);
+            $commerce_order->set('express_method', $express_method);
         }
 
         $commerce_order->save();

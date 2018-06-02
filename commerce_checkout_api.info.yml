@@ -6,6 +6,7 @@ package: Custom
 dependencies:
   - commerce_checkout_api
   - commerce_payment
+  - commerce_express
   - rest
   - serialization
   - simple_oauth
