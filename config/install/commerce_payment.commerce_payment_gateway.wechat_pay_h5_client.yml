@@ -1,4 +1,4 @@
-langcode: en
+langcode: zh-hans
 status: true
 dependencies:
   module:
@@ -12,9 +12,9 @@ configuration:
   mode: live
   payment_method_types:
     - credit_card
-  appid: ''
-  mch_id: ''
-  key: ''
+  appid: some_app__id
+  mch_id: some_number
+  key: some_key_string
   cert_pem_path: /app/wechatpay_pems/apiclient_key.pem
   key_pem_path: /app/wechatpay_pems/apiclient_key.pem
 conditions: {  }
