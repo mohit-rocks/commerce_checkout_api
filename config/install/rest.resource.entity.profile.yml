@@ -2,16 +2,23 @@ langcode: zh-hans
 status: true
 dependencies:
   module:
-    - commerce_checkout_api
+    - basic_auth
+    - profile
     - serialization
     - simple_oauth
-id: payment_resource
-plugin_id: payment_resource
+    - user
+id: entity.profile
+plugin_id: 'entity:profile'
 granularity: resource
 configuration:
   methods:
+    - GET
     - POST
+    - DELETE
+    - PATCH
   formats:
     - json
   authentication:
+    - basic_auth
     - oauth2
+    - cookie

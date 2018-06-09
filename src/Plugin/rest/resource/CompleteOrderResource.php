@@ -2,6 +2,7 @@
 
 namespace Drupal\commerce_checkout_api\Plugin\rest\resource;
 
+use Drupal\commerce_express\Entity\ExpressMethod;
 use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\Core\Entity\EntityInterface;
@@ -135,33 +136,35 @@ class CompleteOrderResource extends ResourceBase
 
         // 保存联系信息、更新数量
         $profile = null;
-        if ($commerce_order->get('contact')->isEmpty()) {
-            // 创建profile
-            $profile = Profile::create([
-                'type' => 'order_contact'
-            ]);
-        } else {
-            $profile = $commerce_order->get('contact')->entity;
+        if (isset($unserialized['contact']) && !empty($unserialized['contact'])) {
+            if ($commerce_order->get('contact')->isEmpty()) {
+                // 创建profile
+                $profile = Profile::create([
+                    'type' => 'order_contact'
+                ]);
+            } else {
+                $profile = $commerce_order->get('contact')->entity;
+            }
+
+            if (!empty($unserialized['contact']['address'])) {
+                $profile->set('field_address_province', $unserialized['contact']['address']['field_address_province']);
+                $profile->set('field_address_province_code', $unserialized['contact']['address']['field_address_province_code']);
+
+                $profile->set('field_address_city', $unserialized['contact']['address']['field_address_city']);
+                $profile->set('field_address_city_code', $unserialized['contact']['address']['field_address_city_code']);
+
+                $profile->set('field_address_district', $unserialized['contact']['address']['field_address_district']);
+                $profile->set('field_address_district_code', $unserialized['contact']['address']['field_address_district_code']);
+
+                $profile->set('field_address_detail', $unserialized['contact']['address']['field_address_detail']);
+            }
+
+            $profile->set('field_name', $unserialized['contact']['field_name']);
+            $profile->set('field_phone', $unserialized['contact']['field_phone']);
+            $profile->set('field_remark', $unserialized['contact']['field_remark']);
+
+            $profile->save();
         }
-
-        if (!empty($unserialized['contact']['address'])) {
-            $profile->set('field_address_province', $unserialized['contact']['address']['field_address_province']);
-            $profile->set('field_address_province_code', $unserialized['contact']['address']['field_address_province_code']);
-
-            $profile->set('field_address_city', $unserialized['contact']['address']['field_address_city']);
-            $profile->set('field_address_city_code', $unserialized['contact']['address']['field_address_city_code']);
-
-            $profile->set('field_address_district', $unserialized['contact']['address']['field_address_district']);
-            $profile->set('field_address_district_code', $unserialized['contact']['address']['field_address_district_code']);
-
-            $profile->set('field_address_detail', $unserialized['contact']['address']['field_address_detail']);
-        }
-
-        $profile->set('field_name', $unserialized['contact']['field_name']);
-        $profile->set('field_phone', $unserialized['contact']['field_phone']);
-        $profile->set('field_remark', $unserialized['contact']['field_remark']);
-
-        $profile->save();
 
         // 更新数量
         if (!empty($unserialized['quantity'])) {
@@ -177,8 +180,20 @@ class CompleteOrderResource extends ResourceBase
             $commerce_order->setRefreshState(OrderInterface::REFRESH_ON_SAVE);
         }
 
-        if ($commerce_order->get('contact')->isEmpty()) {
+        if ($commerce_order->get('contact')->isEmpty() && $profile) {
             $commerce_order->set('contact', $profile);
+        }
+
+        // 保存 billing_profile，它是 commerce_order 的原生订单资料字段
+        if ($unserialized['billing_profile']) {
+            $billing_profile = Profile::load($unserialized['billing_profile']);
+            $commerce_order->setBillingProfile($billing_profile);
+        }
+
+        // 保存快递选项
+        if ($unserialized['express_method']) {
+            $express_method = ExpressMethod::load($unserialized['express_method']);
+            $commerce_order->set('express_method', $express_method);
         }
 
         $commerce_order->save();

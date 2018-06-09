@@ -4,3 +4,8 @@ services:
     arguments: ['@entity.repository']
     tags:
       - { name: normalizer, priority: 9 }
+  commerce_checkout_api.normalizer.order_adjustment:
+    class: Drupal\commerce_checkout_api\Normalizer\OrderAdjustmentNormalizer
+    arguments: ['@entity.repository']
+    tags:
+      - { name: normalizer, priority: 9 }

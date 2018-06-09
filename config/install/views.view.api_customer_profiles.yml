@@ -1,24 +1,25 @@
 langcode: zh-hans
 status: true
 dependencies:
+  config:
+    - profile.type.customer
   module:
-    - commerce_order
+    - profile
     - rest
     - serialization
-    - state_machine
-id: api_orders
-label: 'Api Orders'
+id: api_customer_profiles
+label: 'Api Customer Profiles'
 module: views
 description: ''
 tag: ''
-base_table: commerce_order
-base_field: order_id
+base_table: profile
+base_field: profile_id
 core: 8.x
 display:
   default:
     display_plugin: default
     id: default
-    display_title: 主
+    display_title: Master
     position: 0
     display_options:
       access:
@@ -73,13 +74,13 @@ display:
           hide_empty: false
           default_field_elements: true
       fields:
-        order_number:
-          table: commerce_order
-          field: order_number
-          id: order_number
+        rendered_entity:
+          table: profile
+          field: rendered_entity
+          id: rendered_entity
           entity_type: null
-          entity_field: order_number
-          plugin_id: field
+          entity_field: null
+          plugin_id: rendered_entity
           relationship: none
           group_type: group
           admin_label: ''
@@ -124,38 +125,35 @@ display:
           hide_empty: false
           empty_zero: false
           hide_alter_empty: true
-          click_sort_column: value
-          type: string
-          settings: {  }
-          group_column: value
-          group_columns: {  }
-          group_rows: true
-          delta_limit: 0
-          delta_offset: 0
-          delta_reversed: false
-          delta_first_last: false
-          multi_type: separator
-          separator: '， '
-          field_api_classes: false
+          view_mode: default
       filters:
-        state:
-          id: state
-          table: commerce_order
-          field: state
+        type:
+          id: type
+          table: profile
+          field: type
+          value:
+            customer: customer
+          entity_type: profile
+          entity_field: type
+          plugin_id: bundle
+        status:
+          id: status
+          table: profile
+          field: status
           relationship: none
           group_type: group
           admin_label: ''
-          operator: in
-          value: {  }
+          operator: '='
+          value: ''
           group: 1
           exposed: true
           expose:
-            operator_id: state_op
-            label: 状态
+            operator_id: ''
+            label: 有效
             description: ''
             use_operator: false
-            operator: state_op
-            identifier: state
+            operator: status_op
+            identifier: status
             required: false
             remember: false
             multiple: false
@@ -164,7 +162,6 @@ display:
               anonymous: '0'
               distributor: '0'
               administrator: '0'
-            reduce: false
           is_grouped: false
           group_info:
             label: ''
@@ -177,14 +174,14 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-          entity_type: commerce_order
-          entity_field: state
-          plugin_id: state_machine_state
+          entity_type: profile
+          entity_field: status
+          plugin_id: boolean
       sorts:
-        placed:
-          id: placed
-          table: commerce_order
-          field: placed
+        changed:
+          id: changed
+          table: profile
+          field: changed
           relationship: none
           group_type: group
           admin_label: ''
@@ -193,8 +190,8 @@ display:
           expose:
             label: ''
           granularity: second
-          entity_type: commerce_order
-          entity_field: placed
+          entity_type: profile
+          entity_field: changed
           plugin_id: date
       header: {  }
       footer: {  }
@@ -203,7 +200,7 @@ display:
       arguments:
         uid:
           id: uid
-          table: commerce_order
+          table: profile
           field: uid
           relationship: none
           group_type: group
@@ -212,7 +209,7 @@ display:
           exception:
             value: all
             title_enable: false
-            title: 全部
+            title: All
           title_enable: false
           title: ''
           default_argument_type: fixed
@@ -235,19 +232,20 @@ display:
           validate_options: {  }
           break_phrase: false
           not: false
-          entity_type: commerce_order
+          entity_type: profile
           entity_field: uid
           plugin_id: numeric
       display_extenders: {  }
     cache_metadata:
       max-age: -1
       contexts:
-        - 'languages:language_content'
         - 'languages:language_interface'
         - request_format
         - url
         - url.query_args
-      tags: {  }
+      tags:
+        - 'config:core.entity_view_display.profile.customer.default'
+        - 'config:core.entity_view_display.profile.order_contact.default'
   rest_export_1:
     display_plugin: rest_export
     id: rest_export_1
@@ -255,7 +253,7 @@ display:
     position: 1
     display_options:
       display_extenders: {  }
-      path: api/rest/views/orders/%user_id
+      path: api/rest/views/commerce-checkout-api/customer-profiles/%user_id
       pager:
         type: full
         options:
@@ -287,13 +285,16 @@ display:
         type: data_entity
         options: {  }
       auth:
+        - basic_auth
         - oauth2
+        - cookie
     cache_metadata:
       max-age: -1
       contexts:
-        - 'languages:language_content'
         - 'languages:language_interface'
         - request_format
         - url
         - url.query_args
-      tags: {  }
+      tags:
+        - 'config:core.entity_view_display.profile.customer.default'
+        - 'config:core.entity_view_display.profile.order_contact.default'
